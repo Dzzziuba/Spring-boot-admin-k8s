@@ -1,0 +1,33 @@
+spring:
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: true
+        service-labels:
+          techstack: spring-boot
+      enabled: true
+  boot:
+    admin:
+      monitor:
+        info-interval: 10s
+        status-interval: 5000ms
+      discovery:
+        converter:
+          management-context-path: ${management.endpoints.web.base-path}
+        instances-metadata:
+          techstack: spring-boot
+  config.import: optional:configtree:/secret/app/
+
+management:
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      base-path: /management
+      exposure:
+        include: '*'
+

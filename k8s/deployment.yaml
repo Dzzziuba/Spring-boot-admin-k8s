@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-boot-admin
+  labels:
+    app: spring-boot-admin
+spec:
+  selector:
+    matchLabels:
+      app: spring-boot-admin
+  replicas: 1
+  revisionHistoryLimit: 3
+  progressDeadlineSeconds: 800
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      name: spring-boot-admin
+      labels:
+        app: spring-boot-admin
+    spec:
+      serviceAccountName: spring-boot-admin-service-account
+#     Define volume with secrets value
+      volumes:
+        - name: workshop-secret
+          secret:
+            secretName: workshop-credentials-secret
+      containers:
+        - name: spring-boot-admin
+#         Grab properties from configmap
+          env:
+            - name: ACTIVE_PROFILES
+              value: k8s
+#         Mount volume to container
+          volumeMounts:
+            - mountPath: /secret/app
+              name: workshop-secret
+          image: sba:20
+#         Declare ports (optional)
+          ports:
+            - containerPort: 8081
+              name: main
+#         Declare resource to avoid BestEffort mode
+          resources:
+            requests:
+              cpu: 200m
+              memory: 384Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+#         Configure liveness probe
+          livenessProbe:
+            httpGet:
+              port: main
+              path: /management/health
+            timeoutSeconds: 3
+            periodSeconds: 10
+            failureThreshold: 5
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
